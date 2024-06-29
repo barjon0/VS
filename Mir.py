@@ -3,7 +3,8 @@ import librosa
 import os
 import re
 # from sklearn.ensemble import RandomForestClassifier
-
+from torchvggish import vggish, vggish_input
+# from vggish.vggish_input import wavfile_to_examples
 # duration = ??
 # sampling rate?
 N, H = 4096, 1024
@@ -14,9 +15,13 @@ def readFolder2Waves(path):
     data= []
     labels = []
     directory = os.fsencode(path)
-
+    embedding_model = vggish()
+    embedding_model.eval()
     for file in os.listdir(directory):
-        data.append(librosa.load(path+"/"+file.decode("utf-8")))  # normalize duration?
+        # data.append(librosa.load(path+"/"+file.decode("utf-8")))  # normalize duration?
+        # data.append(wavfile_to_examples(path+"/"+file.decode("utf-8")))  # normalize duration?
+        embeddings = embedding_model.forward(vggish_input.wavfile_to_examples(path+"/"+file.decode("utf-8")))
+        data.append(embeddings) 
         labels.append(re.match(r".*cat_(.*)",path)[1])
 
     return data, labels
