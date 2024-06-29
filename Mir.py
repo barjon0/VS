@@ -1,35 +1,37 @@
 import librosa
 # import sklearn
 import os
-from sklearn.ensemble import RandomForestClassifier
+import re
+# from sklearn.ensemble import RandomForestClassifier
 
-#duration = ??
+# duration = ??
 # sampling rate?
 N, H = 4096, 1024
+MUSIC_DIR = "music"
+
 
 def readFolder2Waves(path):
-    xList = list()
+    data= []
+    labels = []
     directory = os.fsencode(path)
-    for file in os.listdir(directory):
-        xList.append(librosa.load(file))        #duration
 
-    return xList
+    for file in os.listdir(directory):
+        data.append(librosa.load(path+"/"+file.decode("utf-8")))  # normalize duration?
+        labels.append(re.match(r".*cat_(.*)",path)[1])
+
+    return data, labels
+
 
 def readIn():
-    xListJo = readFolder2Waves("VS/music/jonas")
-    xListPh = readFolder2Waves("VS/music/philipp")
-
-    featureListJo = getFeatures(xListJo)
-    featureListPh = getFeatures(xListPh)
-    
-    data1 = [(x, 0) for x in featureListJo]
-    data2 = [(x, 1) for x in featureListPh]
-
-
-    label = [0]*len(xListJo)+[1]*len(xListPh)
-    data = xListJo + xListPh
-
+    directories = sorted(os.listdir(MUSIC_DIR))
+    data= []
+    label= []
+    for directory in directories:
+        dir_data, dir_label  =  readFolder2Waves(MUSIC_DIR+"/"+directory)
+        data.append(dir_data)
+        label.append(dir_label)
     return data, label
+
 
 def getFeatures(waves):
     featureList = list()
@@ -37,13 +39,15 @@ def getFeatures(waves):
         featureList.append(librosa.feature.chroma_stft(w))
     return None
 
-def trainClassifier(classifier,trainingData):
-    data, label= trainingData
+
+def trainClassifier(classifier, trainingData):
+    data, label = trainingData
     for i in range(len(data)):
         classifier.fit()
     pass
-    
-def classify(classifier,test):
+
+
+def classify(classifier, test):
     return classifier.predict(test)
 
 
@@ -53,7 +57,7 @@ if __name__ == "__main__":
     print(data)
     print(label)
     # classifier = RandomForestClassifier(n_estimators=10)
-    #readIn
-    #getFeatures
+    # readIn
+    # getFeatures
     # train
     # classify
